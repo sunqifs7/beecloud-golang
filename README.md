@@ -1,2 +1,2 @@
 # bcGolang
-galang sdk
+golang sdk
