@@ -9,83 +9,80 @@ This module contains data entity.
 :license struct { MIT, see LICENSE for more details.
 */
 
-
+import "time"
 
 type BCApp struct {
 	//correspond to console app
-	app_id        string
-	app_secret    string
-	test_secret   string
-	master_secret string
-	is_test_mode  bool
-
-	timeout       int
+	AppId        string
+	AppSecret    string
+	TestSecret   string
+	MasterSecret string
+	IsTestMode  bool
+	Timeout       int
 }
 
 type BCChannelType int
-
 const (
 	// BCChannelType enum
 
 	WX BCChannelType = iota
-	WX_APP
-	WX_NATIVE
-	WX_JSAPI
-	WX_REDPACK
-	WX_TRANSFER
+	WXAPP
+	WXNATIVE
+	WXJSAPI
+	WXREDPACK
+	WXTRANSFER
 
 	ALI
-	ALI_APP
-	ALI_WEB
-	ALI_WAP
-	ALI_QRCODE
-	ALI_OFFLINE_QRCODE
-	ALI_TRANSFER
+	ALIAPP
+	ALIWEB
+	ALIWAP
+	ALIQRCODE
+	ALIOFFLINEQRCODE
+	ALITRANSFER
 
 	UN
-	UN_APP
-	UN_WEB
-	UN_WAP
+	UNAPP
+	UNWEB
+	UNWAP
 
 	JD
-	JD_WAP
-	JD_WEB
+	JDWAP
+	JDWEB
 
 	YEE
-	YEE_WAP
-	YEE_WEB
-	YEE_NOBANKCARD
+	YEEWAP
+	YEEWEB
+	YEENOBANKCARD
 
 	KUAIQIAN
-	KUAIQIAN_WEB
+	KUAIQIANWEB
 
 	PAYPAL
 	// 生产环境支付，用于手机APP
-	PAYPAL_LIVE
+	PAYPALLIVE
 	// 沙箱环境支付，用于手机APP
-	PAYPAL_SANDBOX
+	PAYPALSANDBOX
 	// 以下用于PC
 	// 跳转到paypal使用paypal内支付
-	PAYPAL_PAYPAL
+	PAYPALPAYPAL
 	// 直接使用信用卡支付（paypal渠道）
-	PAYPAL_CREDITCARD
+	PAYPALCREDITCARD
 	// 使用存储的行用卡id支付（信用卡信息存储在PAYPAL）
-	PAYPAL_SAVED_CREDITCARD
+	PAYPALSAVEDCREDITCARD
 
 	BD
-	BD_APP
-	BD_WAP
-	BD_WEB
+	BDAPP
+	BDWAP
+	BDWEB
 
 	BC
-	BC_GATEWAY
-	BC_APP
-	BC_EXPRESS
-	BC_TRANSFER
+	BCGATEWAY
+	BCAPP
+	BCEXPRESS
+	BCTRANSFER
 )
 
 type BCReqType int
-
 const (
 	PAY BCReqType = iota
 	QUERY
@@ -104,109 +101,79 @@ const (
 // 三位货币种类代码
 )
 
-type StringSlice struct {
+type stringSlice struct {
 	s []string
 }
-func (ss *StringSlice) Append(x string) {
+func (ss *stringSlice) Append(x string) {
 	ss.s = append(ss.s, x)
 }
 
 type BCPayReqParams struct {
 	// 渠道类型
-	channel      string
-
+	Channel      string
 	// 订单总金额
-	total_fee    int
-
+	TotalFee    int
 	// 商户订单号
-	bill_no      string
-
+	BillNo      string
 	// 订单标题
-	title        string
-
+	Title        string
 	// 分析数据
-	analysis     string
-
+	Analysis     string
 	// 同步返回页面
-	return_url   string
-
+	ReturnUrl   string
 	// 订单失效时间
-	bill_timeout int64
-
+	BillTimeout int64
 	// 附加数据
-	optional     map[string]string // This is a nil map. Need to initialize when using.
+	Optional     map[string]interface{} // This is a nil map. Need to initialize when using.
 }
-
 
 type BCRefundReqParams struct {
 	// 渠道类型
-	channel       BCChannelType
-
+	Channel       BCChannelType
 	// 商户退款单号
-	refund_no     string
-
+	RefundNo     string
 	// 商户订单号
-	bill_no       string
-
+	BillNo       string
 	// 退款金额
-	refund_fee    int
-
+	RefundFee    int
 	// 是否为预退款
-	need_approval bool
-
+	NeedApproval bool
 	// 附加数据
-	optional     map[string]string // This is a nil map. Need to initialize when using.
+	Optional     map[string]interface{} // This is a nil map. Need to initialize when using.
 }
-
 
 type BCPreRefundAuditParams struct {
 	// 渠道类型
-	channel     BCChannelType
-
+	Channel     BCChannelType
 	// 预退款记录id列表
-	ids         StringSlice
-
+	Ids         stringSlice
 	// 同意或者驳回
-	agree       bool
-
+	Agree       bool
 	// 驳回理由
-	deny_reason string
+	DenyReason string
 }
-
 
 type BCQueryReqParams struct {
 	// 渠道类型
-	channel       BCChannelType
-
+	Channel       BCChannelType
 	// 商户订单号
-	bill_no       string
-
-	// 商户退款单号
-	// 仅对查询退款有效
-	refund_no     string
-
-	// 订单是否成功
-	// 仅对支付查询有效
-	spay_result   bool
-
-	// 标识退款记录是否为预退款
-	// 仅对查询退款有效
-	need_approval bool
-
+	BillNo       string
+	// 商户退款单号 仅对查询退款有效
+	RefundNo     string
+	// 订单是否成功,仅对支付查询有效
+	spayResult   bool
+	// 标识退款记录是否为预退款 仅对查询退款有效
+	NeedApproval bool
 	// 是否需要返回渠道详细信息
-	need_detail   bool
-
+	NeedDetail   bool
 	// 起始时间
-	start_time    int64
-
+	startTime    time.Time
 	// 结束时间
-	end_time      int64
-
+	endTime      time.Time
 	// 查询起始位置
-	skip          int
-
+	Skip          int
 	// 查询的条数
-	limit         int
+	Limit         int
 }
 
 type BCResult struct {
@@ -215,240 +182,176 @@ type BCResult struct {
 	err_detail  string
 }
 
-
 type BCBill struct {
 	// 订单记录的唯一标识
 	id             string
-
 	// 订单号
-	bill_no        string
-
-	channel        BCChannelType
-
+	BillNo        string
+	Channel        BCChannelType
 	// 子渠道
-	sub_channel    BCChannelType
-
+	SubChannel    BCChannelType
 	// 渠道交易号，当支付成功时有值
-	trade_no       string
-
+	TradeNo       string
 	// 订单创建时间，毫秒时间戳，13位
-	create_time    int64
-
+	createTime    time.Time
 	// 订单是否成功
-	spay_result    bool
-
+	spayResult    bool
 	// 商品标题
-	title          string
-
+	Title          string
 	// 订单金额，单位为分
-	total_fee      int
-
+	TotalFee      int
 	// 渠道详细信息
-	message_detail string
-
+	MessageDetail string
 	// 订单是否已经撤销
-	revert_result  bool
-
+	revertResult  bool
 	// 订单是否已经退款
-	refund_result  bool
+	refundResult  bool
 	// 附加数据
+	Optional map[string]interface{}
 }
 
 type BCRefund struct {
 	// 退款记录的唯一标识
 	id             string
 	// 支付订单号
-	bill_no        string
-	channel        BCChannelType
-
+	BillNo        string
+	Channel        BCChannelType
 	// 子渠道
-	sub_channel    BCChannelType
-
+	SubChannel    BCChannelType
 	// 退款是否完成
-	finish         bool
-
+	Finish         bool
 	// 退款创建时间
-	create_time    int64
-
+	createTime    time.Time
 	// 退款是否成功
 	result         bool
-
 	// 商品标题
-	title          string
-
+	Title          string
 	// 订单金额，单位为分
-	total_fee      int
-
+	TotalFee      int
 	// 退款金额，单位为分
-	refund_fee     int
-
+	RefundFee     int
 	// 退款单号
-	refund_no      string
-
+	RefundNo      string
 	// 渠道详细信息
-	message_detail string
+	MessageDetail string
 	// 附加数据
-	optional     map[string]string // This is a nil map. Need to initialize when using.
+	Optional     map[string]interface{} // This is a nil map. Need to initialize when using.
 }
 
 type BCTransferReqParams struct {
-	// 渠道类型 WX_REDPACK, WX_TRANSFER, ALI_TRANSFER
-	channel           BCChannelType
-
+	// 渠道类型 WXREDPACK, WXTRANSFER, ALITRANSFER
+	Channel           BCChannelType
 	// 打款单号
-	transfer_no       string
-
+	TransferNo       string
 	// 打款金额
-	total_fee         int
-
+	TotalFee         int
 	// 打款说明
-	desc              string
-
+	Desc              string
 	// 支付渠道方内收款人的标示，微信为openid，支付宝为支付宝账户
-	channel_user_id   string
-
+	ChannelUserId   string
 	// 支付渠道内收款人账户名， 支付宝必填
-	channel_user_name string
-
+	ChannelUserName string
 	// 打款方账号名全称，支付宝必填
-	account_name      string
+	AccountName      string
 	// 微信红包的详细描述，Map类型，微信红包必填
-	redpack_info      map[string]string
+	RedpackInfo      map[string]interface{}
 }
-
 
 type BCTransferRedPack struct {
 	// 红包发送者名称
-	send_name string
-
+	SendName string
 	// 红包祝福语
-	wishing   string
-
+	Wishing   string
 	// 红包活动名称
-	act_name  string
+	ActName  string
 }
 
-
-// 用于bc_transfer
+// 用于bcTransfer
 type BCCardTransferParams struct {
 	// 下发订单总金额，正整数
-	total_fee     int
-
+	TotalFee     int
 	// 商户订单号
-	bill_no       string
-
+	BillNo       string
 	// 下发订单标题
-	title         string
-
+	Title         string
 	// 银行全名
-	bank_fullname string
-
+	BankFullname string
 	// 银行卡类型，DE代表借记卡，CR代表信用卡
-	card_type     CardType
-
-	// 收款帐户类型 ????????????
-	account_type  string
-
+	CardType     CardType
+	// 收款帐户类型
+	AccountType  string
 	// 收款帐户号
-	account_no    string
-
+	AccountNo    string
 	// 收款帐户名称
-	account_name  string
-
+	AccountName  string
 	// 银行绑定的手机号
-	mobile        string
-
+	Mobile        string
 	// 附加数据，Map类型
-	optional     map[string]string // This is a nil map. Need to initialize (make) when using.
-	// 交易源????????????
-	trade_source = 'OUT_PC'
+	Optional     map[string]interface{} // This is a nil map. Need to initialize (make) when using.
+	// 交易源 目前只能填写'OUT_PC'
+	// note: 需在处理此类时设置为OUT_PC
+	TradeSource  string
 }
 
 
 type BCBatchTransferParams struct {
 	// 渠道类型 目前只支持ALI
-	// type正确么???
-	channel       BCChannelType.ALI
-
+	// note: 需要在处理此类变量时,设置Channel = ALI
+	Channel       BCChannelType
 	// 打款单号
-	batch_no      string
-
+	BatchNo      string
 	// 付款账号账户全称
-	account_name  string
-
+	AccountName  string
 	// 包含每一笔的具体信息，List类型
-	transfer_data StringSlice
+	TransferData stringSlice
 }
-
-
 
 type BCBatchTransferItem struct {
 	// 打款流水号
-	transfer_id      string
-
+	transferId      string
 	// 收款方账户
-	receiver_account string
-
+	ReceiverAccount string
 	// 收款方账号姓名
-	receiver_name    string
-
+	ReceiverName    string
 	// 打款金额，单位为分
-	transfer_fee     int
-
+	TransferFee     int
 	// 打款备注
-	transfer_note    string
+	TransferNote    string
 }
-
 
 type BCInternationalPayParams struct {
 	// 渠道类型
-	channel          BCChannelType
-
+	Channel          BCChannelType
 	// 订单总金额，单位分
-	total_fee        int
-
+	TotalFee        int
 	// 三位货币种类代码
-	currency         CurrencyType
-
+	Currency         CurrencyType
 	// 商户订单号
-	bill_no          string
-
+	BillNo          string
 	// 订单标题
-	title            string
-
+	Title            string
 	// 信用卡信息 BCPayPalCreditCard
-	credit_card_info BCPayPalCreditCard
-
+	CreditCardInfo BCPayPalCreditCard
 	// 信用卡id
-	credit_card_id   string
-
+	CreditCardId   string
 	// 同步返回页面
-	return_url       string
+	ReturnUrl       string
 }
 
 type BCPayPalCreditCard struct {
 	// 卡号
-	card_number  string
-
+	CardNumber  string
 	// 过期时间中的月
-	// 考虑使用time包???
-	expire_month string
-
+	ExpireMonth int
 	// 过期时间中的年
-	// 考虑使用time包???
-	expire_year  string
-
+	ExpireYear  int
 	// 信用卡的三位cvv码
-	cvv          string
-
+	Cvv          string
 	// 用户名字
-	first_name   string
-
+	FirstName   string
 	// 用户的姓
-	last_name    string
-
+	LastName    string
 	// 卡类别
 	// 什么类别???VISA MASTER?
-	card_type    string
+	CardType    string
 }
-
