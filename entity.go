@@ -82,9 +82,9 @@ const (
 	BCTRANSFER
 )
 
-type BCReqType int
+type BCReqestType int
 const (
-	PAY BCReqType = iota
+	PAY BCReqestType = iota
 	QUERY
 	REFUND
 	TRANSFER
@@ -108,9 +108,17 @@ func (ss *stringSlice) Append(x string) {
 	ss.s = append(ss.s, x)
 }
 
+type BCReqParams struct {
+	AppId 		string
+	AppSign		string
+	Timestamp	time.Time
+}
+
 type BCPayReqParams struct {
+	// app_id, app_sign, timestamp
+	BCReqParams
 	// 渠道类型
-	Channel      string
+	Channel     BCChannelType
 	// 订单总金额
 	TotalFee    int
 	// 商户订单号
@@ -124,10 +132,12 @@ type BCPayReqParams struct {
 	// 订单失效时间
 	BillTimeout int64
 	// 附加数据
-	Optional     map[string]interface{} // This is a nil map. Need to initialize when using.
+	Optional     map[string]string // This is a nil map. Need to initialize when using.
 }
 
 type BCRefundReqParams struct {
+	// app_id, app_sign, timestamp
+	BCReqParams
 	// 渠道类型
 	Channel       BCChannelType
 	// 商户退款单号
@@ -139,7 +149,7 @@ type BCRefundReqParams struct {
 	// 是否为预退款
 	NeedApproval bool
 	// 附加数据
-	Optional     map[string]interface{} // This is a nil map. Need to initialize when using.
+	Optional     map[string]string // This is a nil map. Need to initialize when using.
 }
 
 type BCPreRefundAuditParams struct {
@@ -154,6 +164,8 @@ type BCPreRefundAuditParams struct {
 }
 
 type BCQueryReqParams struct {
+	// app_id, app_sign, timestamp
+	BCReqParams
 	// 渠道类型
 	Channel       BCChannelType
 	// 商户订单号
@@ -207,7 +219,7 @@ type BCBill struct {
 	// 订单是否已经退款
 	refundResult  bool
 	// 附加数据
-	Optional map[string]interface{}
+	Optional map[string]string
 }
 
 type BCRefund struct {
@@ -235,10 +247,12 @@ type BCRefund struct {
 	// 渠道详细信息
 	MessageDetail string
 	// 附加数据
-	Optional     map[string]interface{} // This is a nil map. Need to initialize when using.
+	Optional     map[string]string // This is a nil map. Need to initialize when using.
 }
 
 type BCTransferReqParams struct {
+	// app_id, app_sign, timestamp
+	BCReqParams
 	// 渠道类型 WXREDPACK, WXTRANSFER, ALITRANSFER
 	Channel           BCChannelType
 	// 打款单号
@@ -254,7 +268,7 @@ type BCTransferReqParams struct {
 	// 打款方账号名全称，支付宝必填
 	AccountName      string
 	// 微信红包的详细描述，Map类型，微信红包必填
-	RedpackInfo      map[string]interface{}
+	RedpackInfo      map[string]string
 }
 
 type BCTransferRedPack struct {
@@ -287,7 +301,7 @@ type BCCardTransferParams struct {
 	// 银行绑定的手机号
 	Mobile        string
 	// 附加数据，Map类型
-	Optional     map[string]interface{} // This is a nil map. Need to initialize (make) when using.
+	Optional     map[string]string // This is a nil map. Need to initialize (make) when using.
 	// 交易源 目前只能填写'OUT_PC'
 	// note: 需在处理此类时设置为OUT_PC
 	TradeSource  string
