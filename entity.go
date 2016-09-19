@@ -132,7 +132,7 @@ type BCPayReqParams struct {
 	// 订单失效时间
 	BillTimeout int64
 	// 附加数据
-	Optional     map[string]string // This is a nil map. Need to initialize when using.
+	Optional     MapObject // This is a nil map. Need to initialize when using.
 }
 
 type BCRefundReqParams struct {
@@ -149,7 +149,7 @@ type BCRefundReqParams struct {
 	// 是否为预退款
 	NeedApproval bool
 	// 附加数据
-	Optional     map[string]string // This is a nil map. Need to initialize when using.
+	Optional     MapObject // This is a nil map. Need to initialize when using.
 }
 
 type BCPreRefundAuditParams struct {
@@ -219,7 +219,7 @@ type BCBill struct {
 	// 订单是否已经退款
 	refundResult  bool
 	// 附加数据
-	Optional map[string]string
+	Optional MapObject
 }
 
 type BCRefund struct {
@@ -247,7 +247,7 @@ type BCRefund struct {
 	// 渠道详细信息
 	MessageDetail string
 	// 附加数据
-	Optional     map[string]string // This is a nil map. Need to initialize when using.
+	Optional     MapObject // This is a nil map. Need to initialize when using.
 }
 
 type BCTransferReqParams struct {
@@ -268,7 +268,7 @@ type BCTransferReqParams struct {
 	// 打款方账号名全称，支付宝必填
 	AccountName      string
 	// 微信红包的详细描述，Map类型，微信红包必填
-	RedpackInfo      map[string]string
+	RedpackInfo      MapObject
 }
 
 type BCTransferRedPack struct {
@@ -301,7 +301,7 @@ type BCCardTransferParams struct {
 	// 银行绑定的手机号
 	Mobile        string
 	// 附加数据，Map类型
-	Optional     map[string]string // This is a nil map. Need to initialize (make) when using.
+	Optional     MapObject // This is a nil map. Need to initialize (make) when using.
 	// 交易源 目前只能填写'OUT_PC'
 	// note: 需在处理此类时设置为OUT_PC
 	TradeSource  string
@@ -369,3 +369,6 @@ type BCPayPalCreditCard struct {
 	// 什么类别???VISA MASTER?
 	CardType    string
 }
+
+type MapObject map[string]interface{}
+

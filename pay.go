@@ -19,6 +19,11 @@ func (this *BCPay) RegisterApp(bcApp BCApp) {
 func (this *BCPay) Pay(payParam BCPayReqParams) BCResult {
 	AttachAppSign(&payParam.BCReqParams, PAY, this.bcApp)
 	fmt.Println(payParam.BCReqParams)
+	resMap := HttpPost(this.getBillPayUrl(), payParam)
+	if resMap["result_code"] == 0 {
+		// ???
+		return BCResult(resMap)
+	}
 
 
 }

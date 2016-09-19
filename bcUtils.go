@@ -62,23 +62,35 @@ func GetRandomHost() string {
 	return BEECLOUD_HOSTS[rand.Intn(4)] + BEECLOUD_RESTFUL_VERSION
 }
 
-func HttpPost(reqUrl string, o interface{}) map[string]interface{} {
-	// get type of o, see if is map. If not, transfer to map
-	// should define a mapObj xxx
-	if reflect.TypeOf(o).String() == ""
+func HttpPost(reqUrl string, para interface{}) MapObject {
 	body, _ = json.Marshal(para)
 	response, err1 := http.Post(reqUrl, "application/json", strings.NewReader(string(body)))
 	defer response.Body.Close()
 	if err1 != nil {
 		fmt.Println("exception: http post error")
 	}
+	if 200 != response.StatusCode {
+		return handleInvalidResp(response)
+	}
 	content, err2 := ioutil.ReadAll(response.Body)
 	if err2 != nil {
 		fmt.Println("exception: http content read error")
 	}
-	result := make(map[string]interface{})
+	result := make(MapObject)
 	if err3 := json.Unmarshal(content, &result); err3 == nil {
 		return result
 	}
 	return nil
+}
+
+// private methods
+func handleInvalidResp(resp *http.Response) BCResult {
+	content, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println("exception")
+	}
+	return BCResult{
+		result_code: NETWORK_ERROR_CODE,
+		result_msg: resp.Status,
+		err_detail: string(content)}
 }
