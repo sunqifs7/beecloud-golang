@@ -9,7 +9,10 @@ This module contains data entity.
 :license struct { MIT, see LICENSE for more details.
 */
 
-import "time"
+import (
+	"time"
+	"go/types"
+)
 
 type BCApp struct {
 	//correspond to console app
@@ -26,60 +29,61 @@ const (
 	// BCChannelType enum
 
 	WX BCChannelType = iota
-	WXAPP
-	WXNATIVE
-	WXJSAPI
-	WXREDPACK
-	WXTRANSFER
+	WX_APP
+	WX_NATIVE
+	WX_JSAPI
+	WX_REDPACK
+	WX_TRANSFER
 
 	ALI
-	ALIAPP
-	ALIWEB
-	ALIWAP
-	ALIQRCODE
-	ALIOFFLINEQRCODE
-	ALITRANSFER
+	ALI_APP
+	ALI_WEB
+	ALI_WAP
+	ALI_QRCODE
+	ALI_OFFLINE_QRCODE
+	ALI_TRANSFER
 
 	UN
-	UNAPP
-	UNWEB
-	UNWAP
+	UN_APP
+	UN_WEB
+	UN_WAP
 
 	JD
-	JDWAP
-	JDWEB
+	JD_WAP
+	JD_WEB
 
 	YEE
-	YEEWAP
-	YEEWEB
-	YEENOBANKCARD
+	YEE_WAP
+	YEE_WEB
+	YEE_NOBANKCARD
 
 	KUAIQIAN
-	KUAIQIANWEB
+	KUAIQIAN_WEB
+	KUAIQIAN_WAP
 
 	PAYPAL
 	// 生产环境支付，用于手机APP
-	PAYPALLIVE
+	PAYPAL_LIVE
 	// 沙箱环境支付，用于手机APP
-	PAYPALSANDBOX
+	PAYPAL_SANDBOX
 	// 以下用于PC
 	// 跳转到paypal使用paypal内支付
-	PAYPALPAYPAL
+	PAYPAL_PAYPAL
 	// 直接使用信用卡支付（paypal渠道）
-	PAYPALCREDITCARD
+	PAYPAL_CREDITCARD
 	// 使用存储的行用卡id支付（信用卡信息存储在PAYPAL）
-	PAYPALSAVEDCREDITCARD
+	PAYPAL_SAVED_CREDITCARD
 
 	BD
-	BDAPP
-	BDWAP
-	BDWEB
+	BD_APP
+	BD_WAP
+	BD_WEB
 
 	BC
-	BCGATEWAY
-	BCAPP
-	BCEXPRESS
-	BCTRANSFER
+	BC_GATEWAY
+	BC_APP
+	BC_EXPRESS
+	BC_TRANSFER
 )
 
 type BCReqestType int
@@ -126,13 +130,31 @@ type BCPayReqParams struct {
 	// 订单标题
 	Title        string
 	// 分析数据
-	Analysis     string
+	Analysis     MapObject
 	// 同步返回页面
 	ReturnUrl   string
 	// 订单失效时间
 	BillTimeout int64
 	// 附加数据
 	Optional     MapObject // This is a nil map. Need to initialize when using.
+}
+
+type BCPayParams struct {
+	BCPayReqParams
+	// WX_JSAPI, req
+	Openid		string
+	// ALI_WEB, opt
+	ShowUrl		string
+	// ALI_WAP, opt
+	UseApp		bool
+	// ALI_QRCODE, req
+	QrPayMode 	string
+	// YEE_WAP, req
+	IdentifyId	string
+	// YEE_NOBANKCARD, req
+	CardNo		string
+	CardPwd		string
+	FrqId		string
 }
 
 type BCRefundReqParams struct {
@@ -189,9 +211,38 @@ type BCQueryReqParams struct {
 }
 
 type BCResult struct {
-	result_code int
-	result_msg  string
-	err_detail  string
+	ResultCode int
+	ResultMsg  string
+	ErrDetail  string
+	Id		   string
+}
+
+type BCPayResult struct {
+	BCResult
+	// WX_APP, WX_JSAPI
+	AppId		string
+	PartnerId	string // WX_APP
+	Package		string
+	NonceStr	string
+	Timestamp	string
+	PaySign		string
+	PrepayId	string // WX_APP
+	SignType	string // WX_JSAPI
+	// WX_NATIVE
+	CodeUrl		string
+	// ALI_APP
+	OrderString	string
+	// ALI_WEB，ALI_WAP, ALI_QRCODE |
+	// Html only -> UN_WEB、UN_WAP、JD_WAP、JD_WEB、KUAIQIAN_WAP、KUAIQIAN_WEB
+	// Url only -> YEE_WAP、YEE_WEB、BD_WAP、BD_WEB
+	Html		string
+	Url			string
+	// ALI_OFFLINE_QRCODE
+	QrCode		string
+	// UN_APP
+	Tn			string
+	// BD_APP
+	OrderInfo	string
 }
 
 type BCBill struct {

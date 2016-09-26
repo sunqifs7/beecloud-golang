@@ -62,7 +62,7 @@ func GetRandomHost() string {
 	return BEECLOUD_HOSTS[rand.Intn(4)] + BEECLOUD_RESTFUL_VERSION
 }
 
-func HttpPost(reqUrl string, para interface{}) MapObject {
+func HttpPost(reqUrl string, para MapObject) MapObject {
 	body, _ = json.Marshal(para)
 	response, err1 := http.Post(reqUrl, "application/json", strings.NewReader(string(body)))
 	defer response.Body.Close()
