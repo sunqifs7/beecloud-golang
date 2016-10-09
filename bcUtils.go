@@ -62,35 +62,36 @@ func GetRandomHost() string {
 	return BEECLOUD_HOSTS[rand.Intn(4)] + BEECLOUD_RESTFUL_VERSION
 }
 
-func HttpPost(reqUrl string, para MapObject) MapObject {
+func HttpPost(reqUrl string, para MapObject) (content []byte, ok bool) {
 	body, _ = json.Marshal(para)
 	response, err1 := http.Post(reqUrl, "application/json", strings.NewReader(string(body)))
 	defer response.Body.Close()
 	if err1 != nil {
 		fmt.Println("exception: http post error")
 	}
-	if 200 != response.StatusCode {
-		return handleInvalidResp(response)
-	}
 	content, err2 := ioutil.ReadAll(response.Body)
 	if err2 != nil {
 		fmt.Println("exception: http content read error")
+		// should panic exception
 	}
-	result := make(MapObject)
-	if err3 := json.Unmarshal(content, &result); err3 == nil {
-		return result
+	if 200 != response.StatusCode {
+		return content, false
 	}
-	return nil
+	return content, true
 }
 
-// private methods
-func handleInvalidResp(resp *http.Response) BCResult {
-	content, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		fmt.Println("exception")
-	}
+func NotSupportedTestError(methodName string) BCResult {
+	var errResult BCResult
+	errResult.ResultCode = NOT_SUPPORTED_CODE
+	errResult.ResultMsg = NOT_SUPPORTED_NAME
+	errResult.ErrDetail = methodName + "is not supported in test mode currently!"
+	return errResult
+}
+
+func HandleInvalidResp(content []byte) BCResult {
 	return BCResult{
 		result_code: NETWORK_ERROR_CODE,
 		result_msg: resp.Status,
 		err_detail: string(content)}
 }
+// private methods

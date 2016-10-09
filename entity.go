@@ -12,6 +12,7 @@ This module contains data entity.
 import (
 	"time"
 	"go/types"
+	"net/url"
 )
 
 type BCApp struct {
@@ -211,38 +212,49 @@ type BCQueryReqParams struct {
 }
 
 type BCResult struct {
-	ResultCode int
-	ResultMsg  string
-	ErrDetail  string
-	Id		   string
+	ResultCode int		`json:"result_code"`
+	ResultMsg  string	`json:"result_msg"`
+	ErrDetail  string	`json:"err_detail"`
+
 }
 
 type BCPayResult struct {
 	BCResult
+	Id		   string	`json:"id"`
 	// WX_APP, WX_JSAPI
-	AppId		string
-	PartnerId	string // WX_APP
-	Package		string
-	NonceStr	string
-	Timestamp	string
-	PaySign		string
-	PrepayId	string // WX_APP
-	SignType	string // WX_JSAPI
+	AppId		string	`json:"app_id"`
+		// WX_APP
+	PartnerId	string 	`json:"partner_id"`
+	Package		string	`json:"package"`
+	NonceStr	string	`json:"nonce_str"`
+	Timestamp	string	`json:"timestamp"`
+	PaySign		string	`json:"pay_sign"`
+		// WX_APP
+	PrepayId	string 	`json:"prepay_id"`
+		// WX_JSAPI
+	SignType	string	`json:"sign_type"`
 	// WX_NATIVE
-	CodeUrl		string
+	CodeUrl		string  `json:"code_url"`
 	// ALI_APP
-	OrderString	string
+	OrderString	string	`json:"order_string"`
 	// ALI_WEB，ALI_WAP, ALI_QRCODE |
 	// Html only -> UN_WEB、UN_WAP、JD_WAP、JD_WEB、KUAIQIAN_WAP、KUAIQIAN_WEB
 	// Url only -> YEE_WAP、YEE_WEB、BD_WAP、BD_WEB
-	Html		string
-	Url			string
+	Html		string	`json:"html"`
+	Url			string	`json:"url"`
 	// ALI_OFFLINE_QRCODE
-	QrCode		string
+	QrCode		string	`json:"qr_code"`
 	// UN_APP
-	Tn			string
+	Tn			string	`json:"tn"`
 	// BD_APP
-	OrderInfo	string
+	OrderInfo	string	`json:"orderInfo"`
+}
+
+type BCRefundResult struct {
+	BCResult
+	Id		string		`json:"id"`
+	// ALI
+	Url 	string		`json:"url"`
 }
 
 type BCBill struct {

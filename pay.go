@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"math"
 	"time"
+	"encoding/json"
 )
 
 type BCPay struct {
@@ -39,13 +40,26 @@ func (this *BCPay) Pay(payParam BCPayParams) BCPayResult {
 		para["frqid"] = payParam.FrqId
 	}
 
-	resMap := HttpPost(this.getBillPayUrl(), para)
+	response, ok := HttpPost(this.getBillPayUrl(), para)
 	var bcPayResult BCPayResult
+	if  !ok {
+		fmt.Println("Error returned. Should return a BCResult with error code")
+		bcPayResult.BCResult = HandleInvalidResp(response)
+		return bcPayResult
+	}
+	if err := json.Unmarshal(response, &bcPayResult); err != nil {
+		fmt.Println("json.Unmarshal error")
+		// should be an exception, since this might be BC-related
+	}
+
+	return bcPayResult
+
+	/*
 	bcPayResult.ResultCode = resMap["result_code"]
 	bcPayResult.ResultCode = resMap["result_msg"]
 	bcPayResult.ResultCode = resMap["err_detail"]
 	bcPayResult.ResultCode = resMap["id"]
-	if resMap["result_code"] != 0 {
+	if bcPayResult.ResultCode != 0 {
 		return bcPayResult
 	}
 	switch payParam.Channel {
@@ -84,8 +98,49 @@ func (this *BCPay) Pay(payParam BCPayParams) BCPayResult {
 	default:
 		fmt.Println("Wrong channel!")
 	}
+	*/
 
-	return bcPayResult
+}
+
+func (this *BCPay) Refund(refundParam BCRefundReqParams) BCRefundResult {
+	if this.bcApp.IsTestMode {
+		return NotSupportedTestError("refund")
+	}
+	AttachAppSign(&refundParam.BCReqParams, REFUND, this.bcApp)
+	fmt.Println(refundParam.BCReqParams)
+	para := constructRefundParamMap(refundParam)
+
+	content, ok := HttpPost(this.getBillRefundUrl(), para)
+	var bcRefundResult BCRefundResult
+	if !ok {
+		fmt.Println("Error returned. Should return a BCResult with error code")
+		bcRefundResult.BCResult = HandleInvalidResp(content)
+		return bcRefundResult
+	}
+	if err := json.Unmarshal(content, &bcRefundResult); err != nil {
+		fmt.Println("json.Unmarshal error")
+		// should be an exception
+	}
+
+	return bcRefundResult
+
+	/*
+	bcRefundResult.ResultCode = resMap["result_code"]
+	bcRefundResult.ResultMsg = resMap["result_msg"]
+	bcRefundResult.ErrDetail = resMap["err_detail"]
+	id, ok := resMap["id"]
+	if ok {
+		bcRefundResult.Id = id
+	}
+	if refundParam.Channel == ALI && refundParam.NeedApproval != true && bcRefundResult.ResultCode == 0 {
+		bcRefundResult.Url = resMap["url"]
+	}
+	*/
+
+}
+
+func (this *BCPay) AuditPreRefunds(preRefundParams BCPreRefundAuditParams) {
+
 }
 
 // private methods
@@ -95,6 +150,10 @@ func (this *BCPay) getBillPayUrl() string {
 	} else {
 		return GetRandomHost() + "rest/bill"
 	}
+}
+
+func (this *BCPay) getBillRefundUrl() string {
+	return GetRandomHost() + "rest/refund"
 }
 
 func constructPayReqParamMap(payParam BCPayReqParams) MapObject {
@@ -112,4 +171,21 @@ func constructPayReqParamMap(payParam BCPayReqParams) MapObject {
 	para["bill_timeout"] = payParam.BillTimeout
 	
 	return para
+}
+
+func constructRefundParamMap(refundParam BCRefundReqParams) MapObject {
+	para := make(MapObject)
+	para["app_id"] = refundParam.AppId
+	para["app_sign"] = refundParam.AppSign
+	para["timestamp"] = refundParam.Timestamp
+	if !StrEmpty(refundParam.Channel) {
+		para["channel"] = refundParam.Channel
+	}
+	para["refund_no"] = refundParam.RefundNo
+	para["bill_no"] = refundParam.BillNo
+	para["refund_fee"] = refundParam.RefundFee
+	para["optional"] = refundParam.Optional // what happends if optional is empty?
+	if refundParam.NeedApproval != nil {
+		para["need_approval"] = refundParam.NeedApproval
+	}
 }
