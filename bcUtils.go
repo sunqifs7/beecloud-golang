@@ -21,7 +21,7 @@ func AttachAppSign(reqParams *BCReqParams, reqestType BCReqestType, bcApp BCApp)
 		fmt.Println("exception: app_id is empty")
 	}
 	reqParams.AppId = bcApp.AppId
-	reqParams.Timestamp = time.Time.Unix()
+	reqParams.Timestamp = time.Time.UnixNano()/1000000 // 毫秒数
 
 	if bcApp.IsTestMode {
 		if StrEmpty(bcApp.TestSecret) {
@@ -37,6 +37,7 @@ func AttachAppSign(reqParams *BCReqParams, reqestType BCReqestType, bcApp BCApp)
 				reqParams.AppSign = getMd5SignString(bcApp.AppId + strconv.FormatInt(reqParams.Timestamp, 10) + bcApp.MasterSecret)
 			}
 		} else {
+			// QUERY or PAY
 			if StrEmpty(bcApp.AppSecret) {
 				fmt.Println("exception: app_secret empty")
 			} else {

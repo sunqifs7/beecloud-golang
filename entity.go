@@ -116,7 +116,7 @@ func (ss *stringSlice) Append(x string) {
 type BCReqParams struct {
 	AppId 		string
 	AppSign		string
-	Timestamp	time.Time
+	Timestamp	int64
 }
 
 type BCPayReqParams struct {
@@ -175,16 +175,19 @@ type BCRefundReqParams struct {
 	Optional     MapObject // This is a nil map. Need to initialize when using.
 }
 
-type BCPreRefundAuditParams struct {
+type BCPreRefundParams struct {
+	// app_id, app_sign, timestamp
+	BCReqParams
 	// 渠道类型
 	Channel     BCChannelType
 	// 预退款记录id列表
 	Ids         stringSlice
 	// 同意或者驳回
 	Agree       bool
-	// 驳回理由
+	// 驳回理由; optional
 	DenyReason string
 }
+
 
 type BCQueryReqParams struct {
 	// app_id, app_sign, timestamp
@@ -255,6 +258,14 @@ type BCRefundResult struct {
 	Id		string		`json:"id"`
 	// ALI
 	Url 	string		`json:"url"`
+}
+
+type BCPreRefundResult struct {
+	BCResult
+	// when agree == true && result_code == 0
+	ResultMap	MapObject	`json:"result_map"`
+	// when agree == true && result_code == 0 && channel == ALI
+	Url 		string		`json:"url"`
 }
 
 type BCBill struct {

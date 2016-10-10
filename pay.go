@@ -18,6 +18,7 @@ func (this *BCPay) RegisterApp(bcApp BCApp) {
 }
 
 func (this *BCPay) Pay(payParam BCPayParams) BCPayResult {
+	var bcPayResult BCPayResult
 	AttachAppSign(&payParam.BCReqParams, PAY, this.bcApp)
 	fmt.Println(payParam.BCReqParams)
 	para := constructPayReqParamMap(payParam.BCPayReqParams)
@@ -41,7 +42,6 @@ func (this *BCPay) Pay(payParam BCPayParams) BCPayResult {
 	}
 
 	response, ok := HttpPost(this.getBillPayUrl(), para)
-	var bcPayResult BCPayResult
 	if  !ok {
 		fmt.Println("Error returned. Should return a BCResult with error code")
 		bcPayResult.BCResult = HandleInvalidResp(response)
@@ -103,15 +103,16 @@ func (this *BCPay) Pay(payParam BCPayParams) BCPayResult {
 }
 
 func (this *BCPay) Refund(refundParam BCRefundReqParams) BCRefundResult {
+	var bcRefundResult BCRefundResult
 	if this.bcApp.IsTestMode {
-		return NotSupportedTestError("refund")
+		bcRefundResult.BCResult = NotSupportedTestError("refund")
+		return bcRefundResult
 	}
 	AttachAppSign(&refundParam.BCReqParams, REFUND, this.bcApp)
 	fmt.Println(refundParam.BCReqParams)
 	para := constructRefundParamMap(refundParam)
 
 	content, ok := HttpPost(this.getBillRefundUrl(), para)
-	var bcRefundResult BCRefundResult
 	if !ok {
 		fmt.Println("Error returned. Should return a BCResult with error code")
 		bcRefundResult.BCResult = HandleInvalidResp(content)
@@ -139,7 +140,16 @@ func (this *BCPay) Refund(refundParam BCRefundReqParams) BCRefundResult {
 
 }
 
-func (this *BCPay) AuditPreRefunds(preRefundParams BCPreRefundAuditParams) {
+func (this *BCPay) AuditPreRefunds(preRefundParam BCPreRefundParams) BCPreRefundResult {
+	var bcPreRefundResult BCPreRefundResult
+	if this.bcApp.IsTestMode {
+		bcPreRefundResult.BCResult = NotSupportedTestError("audit_pre_refunds")
+		return bcPreRefundResult
+	}
+	// PAY here??? need to check
+	AttachAppSign(&preRefundParams.BCReqParams, PAY, this.bcApp)
+	fmt.Println(preRefundParams.BCReqParams)
+	para := constructPreRefundParamMap(preRefundParam)
 
 }
 
@@ -156,11 +166,16 @@ func (this *BCPay) getBillRefundUrl() string {
 	return GetRandomHost() + "rest/refund"
 }
 
-func constructPayReqParamMap(payParam BCPayReqParams) MapObject {
+func constructBCReqParamMap(bcReqParam BCReqParams) MapObject {
 	para := make(MapObject)
-	para["app_id"] = payParam.AppId
-	para["app_sign"] = payParam.AppSign
-	para["timestamp"] = payParam.Timestamp
+	para["app_id"] = bcReqParam.AppId
+	para["app_sign"] = bcReqParam.AppSign
+	para["timestamp"] = bcReqParam.Timestamp //毫秒数
+	return para
+}
+
+func constructPayReqParamMap(payParam BCPayReqParams) MapObject {
+	para := constructBCReqParamMap(payParam.BCReqParams)
 	para["channel"] = payParam.Channel
 	para["total_fee"] = payParam.TotalFee
 	para["bill_no"] = payParam.BillNo
@@ -174,10 +189,7 @@ func constructPayReqParamMap(payParam BCPayReqParams) MapObject {
 }
 
 func constructRefundParamMap(refundParam BCRefundReqParams) MapObject {
-	para := make(MapObject)
-	para["app_id"] = refundParam.AppId
-	para["app_sign"] = refundParam.AppSign
-	para["timestamp"] = refundParam.Timestamp
+	para := constructBCReqParamMap(refundParam.BCReqParams)
 	if !StrEmpty(refundParam.Channel) {
 		para["channel"] = refundParam.Channel
 	}
@@ -188,4 +200,14 @@ func constructRefundParamMap(refundParam BCRefundReqParams) MapObject {
 	if refundParam.NeedApproval != nil {
 		para["need_approval"] = refundParam.NeedApproval
 	}
+}
+
+func constructPreRefundParamMap(preRefundParam BCPreRefundParams) MapObject {
+	para := constructBCReqParamMap(preRefundParam.BCReqParams)
+	para["channel"] = preRefundParam.Channel // problem here
+	para["ids"] = preRefundParam.Ids
+	para["agree"] = preRefundParam.Agree
+	para["deny_reason"] = preRefundParam.DenyReason
+
+	return para
 }
