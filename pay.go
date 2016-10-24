@@ -140,20 +140,91 @@ func (this *BCPay) Refund(refundParam BCRefundReqParams) BCRefundResult {
 
 }
 
-func (this *BCPay) AuditPreRefunds(preRefundParam BCPreRefundParams) BCPreRefundResult {
-	var bcPreRefundResult BCPreRefundResult
+func (this *BCPay) AuditPreRefunds(preRefundParam BCPreRefundParams) BCRefundResult {
+	var bcRefundResult BCRefundResult
 	if this.bcApp.IsTestMode {
-		bcPreRefundResult.BCResult = NotSupportedTestError("audit_pre_refunds")
-		return bcPreRefundResult
+		bcRefundResult.BCResult = NotSupportedTestError("audit_pre_refunds")
+		return bcRefundResult
 	}
 	// PAY here??? need to check
 	AttachAppSign(&preRefundParams.BCReqParams, PAY, this.bcApp)
 	fmt.Println(preRefundParams.BCReqParams)
 	para := constructPreRefundParamMap(preRefundParam)
 
+	content, ok := HttpPut(this.getBillRefundUrl(), para)
+	if !ok {
+		fmt.Println("Error returned. Should return a BCResult with error code")
+		bcRefundResult.BCResult = HandleInvalidResp(content)
+		return bcRefundResult
+	}
+	if err := json.Unmarshal(content, &bcRefundResult); err != nil {
+		fmt.Println("json.Unmarshal error")
+		// should be an exception
+	}
+
+	return bcRefundResult
+}
+
+func (this *BCPay) BcTransfer(bcTransferParam BCCardTransferParams) BCTransferResult {
+	// for beecloud transfer via bank card
+	var bcTransferResult BCTransferResult
+	if this.bcApp.IsTestMode {
+		bcTransferResult.BCResult = NotSupportedTestError("bc_transfer")
+		return bcTransferResult
+	}
+	return this.bcTransferFunc(this.getBCTransferUrl(), bcTransferParam)
+
+}
+
+func (this *BCPay) Transfer(transferParam BCTransferReqParams) BCTransferResult {
+	// for WX_REDPACK, WX_TRANSFER, ALI_TRANSFER
+	var bcTransferResult BCTransferResult
+	if this.bcApp.IsTestMode {
+		bcTransferResult.BCResult = NotSupportedTestError("transfer")
+		return bcTransferResult
+	}
+	return this.transferFunc(this.getTransferUrl(), transferParam)
+
 }
 
 // private methods
+func (this *BCPay) transferFunc(url string, transferParam BCTransferReqParams) BCTransferResult {
+	var bcTransferResult BCTransferResult
+	AttachAppSign(transferParam.BCReqParams, TRANSFER, this.bcApp)
+	para := constructTransferParamMap(transferParam)
+
+	content, ok := HttpPost(url, para)
+	if !ok {
+		fmt.Println("Error returned. Should return a BCResult with error code")
+		bcTransferResult.BCResult = HandleInvalidResp(content)
+		return bcTransferResult
+	}
+	if err := json.Unmarshal(content, &bcTransferResult); err != nil {
+		fmt.Println("json.Unmarshal error")
+	}
+
+	return bcTransferResult
+}
+
+
+func (this *BCPay) bcTransferFunc(url string, transferParam BCCardTransferParams) BCTransferResult{
+	var bcTransferResult BCTransferResult
+	AttachAppSign(transferParam.BCReqParams, TRANSFER, this.bcApp)
+	para := constructBcTransferParamMap(transferParam)
+
+	content, ok := HttpPost(url, para)
+	if !ok {
+		fmt.Println("Error returned. Should return a BCResult with error code")
+		bcTransferResult.BCResult = HandleInvalidResp(content)
+		return bcTransferResult
+	}
+	if err := json.Unmarshal(content, &bcTransferResult); err != nil {
+		fmt.Println("json.Unmarshal error")
+	}
+
+	return bcTransferResult
+}
+
 func (this *BCPay) getBillPayUrl() string {
 	if this.bcApp.IsTestMode {
 		return GetRandomHost() + "rest/sandbox/bill"
@@ -165,6 +236,16 @@ func (this *BCPay) getBillPayUrl() string {
 func (this *BCPay) getBillRefundUrl() string {
 	return GetRandomHost() + "rest/refund"
 }
+
+func (this *BCPay) getBCTransferUrl() string {
+	return GetRandomHost() + "rest/bc_transfer"
+}
+
+func (this *BCPay) getTransferUrl() string {
+	return GetRandomHost() + "rest/transfer"
+}
+
+
 
 func constructBCReqParamMap(bcReqParam BCReqParams) MapObject {
 	para := make(MapObject)
@@ -208,6 +289,48 @@ func constructPreRefundParamMap(preRefundParam BCPreRefundParams) MapObject {
 	para["ids"] = preRefundParam.Ids
 	para["agree"] = preRefundParam.Agree
 	para["deny_reason"] = preRefundParam.DenyReason
+
+	return para
+}
+
+func constructBcTransferParamMap(transferParam BCCardTransferParams) MapObject {
+	para := constructBCReqParamMap(transferParam.BCReqParams)
+	para["total_fee"] = transferParam.TotalFee
+	para["bill_no"] = transferParam.BillNo
+	para["title"] = transferParam.Title
+	para["trade_source"] = "OUT_PC"
+	para["bank_fullname"] = transferParam.BankFullname
+	para["card_type"] = transferParam.CardType
+	para["account_type"] = transferParam.AccountType
+	para["account_no"] = transferParam.AccountNo
+	para["account_name"] = transferParam.AccountName
+	if transferParam.Mobile != nil {
+		para["mobile"] = transferParam.Mobile
+	}
+	if transferParam.Optional != nil {
+		para["optional"] = transferParam.Optional
+	}
+
+	return para
+}
+
+func constructTransferParamMap(transferParam BCTransferReqParams) MapObject {
+	para := constructBCReqParamMap(transferParam.BCReqParams)
+	para["channel"] = transferParam.Channel
+	para["transfer_no"] = transferParam.TransferNo
+	para["total_fee"] = transferParam.TotalFee
+	para["desc"] = transferParam.Desc
+	para["channel_user_id"] = transferParam.ChannelUserId
+	if transferParam.Channel == ALI_TRANSFER {
+		para["channel_user_name"] = transferParam.ChannelUserName
+		para["account_name"] = transferParam.AccountName
+	} else if transferParam.Channel == WX_REDPACK {
+		var redpack MapObject
+		redpack["send_name"] = transferParam.RedpackInfo.SendName
+		redpack["wishing"] = transferParam.RedpackInfo.Wishing
+		redpack["act_name"] = transferParam.RedpackInfo.ActName
+		para["redpack_info"] = redpack
+	}
 
 	return para
 }

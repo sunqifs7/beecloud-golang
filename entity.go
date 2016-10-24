@@ -257,15 +257,18 @@ type BCRefundResult struct {
 	BCResult
 	Id		string		`json:"id"`
 	// ALI
+	// when agree == true && result_code == 0 && channel == ALI
 	Url 	string		`json:"url"`
-}
-
-type BCPreRefundResult struct {
-	BCResult
 	// when agree == true && result_code == 0
 	ResultMap	MapObject	`json:"result_map"`
-	// when agree == true && result_code == 0 && channel == ALI
-	Url 		string		`json:"url"`
+}
+
+type BCTransferResult struct {
+	BCResult
+	Id			string		`json:"id"`
+	Size		int			`json:"size"`
+	BankList	stringSlice	`json:"bank_list"`
+	Url			string		`json:"url"`
 }
 
 type BCBill struct {
@@ -342,7 +345,7 @@ type BCTransferReqParams struct {
 	// 打款方账号名全称，支付宝必填
 	AccountName      string
 	// 微信红包的详细描述，Map类型，微信红包必填
-	RedpackInfo      MapObject
+	RedpackInfo      BCTransferRedPack
 }
 
 type BCTransferRedPack struct {
@@ -391,7 +394,7 @@ type BCBatchTransferParams struct {
 	// 付款账号账户全称
 	AccountName  string
 	// 包含每一笔的具体信息，List类型
-	TransferData stringSlice
+	TransferData []BCBatchTransferItem
 }
 
 type BCBatchTransferItem struct {
@@ -406,6 +409,8 @@ type BCBatchTransferItem struct {
 	// 打款备注
 	TransferNote    string
 }
+
+
 
 type BCInternationalPayParams struct {
 	// 渠道类型

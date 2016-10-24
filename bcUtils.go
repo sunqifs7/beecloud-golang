@@ -64,7 +64,7 @@ func GetRandomHost() string {
 }
 
 func HttpPost(reqUrl string, para MapObject) (content []byte, ok bool) {
-	body, _ = json.Marshal(para)
+	body, _ := json.Marshal(para)
 	response, err1 := http.Post(reqUrl, "application/json", strings.NewReader(string(body)))
 	defer response.Body.Close()
 	if err1 != nil {
@@ -78,6 +78,31 @@ func HttpPost(reqUrl string, para MapObject) (content []byte, ok bool) {
 	if 200 != response.StatusCode {
 		return content, false
 	}
+	return content, true
+}
+
+func HttpPut(reqUrl string, para MapObject) (content []byte, ok bool) {
+	body, _ := json.Marshal(para)
+	client := &http.Client{}
+	request, _ := http.NewRequest("PUT", reqUrl, strings.NewReader(string(body)))
+
+	request.Header.Set("Accept", "application/json,text/html")
+
+	response, err1 := client.Do(request)
+	// not sure if close is needed here
+	defer response.Body.Close()
+	if err1 != nil {
+		fmt.Println("exception: http post error")
+	}
+	content, err2 := ioutil.ReadAll()
+	if err2 != nill {
+		fmt.Println("exception: http content read error")
+	}
+
+	if response.StatusCode != 200 {
+		return content, false
+	}
+
 	return content, true
 }
 
